@@ -1,0 +1,17 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Blog.API.Models
+{   
+    public class Post 
+    {   
+        [Key]
+        [Required]
+        public int Id { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public string Title { get; set; }
+        [Required]
+        [MaxLength(1000)]
+        public string Content { get; set; }
+    }
+}
