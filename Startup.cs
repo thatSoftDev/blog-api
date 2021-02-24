@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Blog.API.Data;
+using Newtonsoft.Json.Serialization;
 
 namespace Blog.API
 {
@@ -31,10 +32,15 @@ namespace Blog.API
             services.AddDbContext<BlogContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
                 
-            services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Blog.API", Version = "v1" });
+            });
+
+            services.AddControllers().AddNewtonsoftJson(s =>
+            {
+                s.SerializerSettings.ContractResolver = new
+                CamelCasePropertyNamesContractResolver();
             });
         }
 
