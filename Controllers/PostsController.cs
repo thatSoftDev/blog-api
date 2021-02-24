@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Blog.API.Data;
+using Blog.API.Repositories;
 using Blog.API.Models;
 using Microsoft.AspNetCore.JsonPatch;
 
@@ -12,56 +10,57 @@ namespace Blog.API.Controllers
     [ApiController]
     public class PostsController : ControllerBase
     {   
-        private readonly BlogContext _context; 
-        public PostsController(BlogContext context)
+        private readonly IPostRepository _repository;
+        
+        public PostsController(IPostRepository repository) 
         {
-            _context = context;
+            _repository = repository;
         }
 
         [HttpGet]
         public ActionResult<IEnumerable<Post>> Get() 
         {
-            return Ok(_context.Posts.AsNoTracking().ToList());
+            return Ok(_repository.Get());
         }
 
         [HttpGet("{id}", Name="Find")]
         public ActionResult<Post> Find(int id) 
         {
-            return Ok(_context.Posts.AsNoTracking().Where(x => x.Id == id).FirstOrDefault());
+            return Ok(_repository.Find(id));
         }
 
         [HttpPost]
         public ActionResult<Post> Create(Post post) 
         {
-            _context.Posts.Add(post);
-            _context.SaveChanges();
+            _repository.Create(post);
+
             return CreatedAtRoute(nameof(Find), new {Id = post.Id}, post);
         }
 
         [HttpPut("{id}")]
         public ActionResult Update(int id, Post post) 
         {   
-            _context.Entry(post).State = EntityState.Modified;
-            _context.SaveChanges();
+            _repository.Update(id, post);
+
             return NoContent();
         }
 
         [HttpPatch("{id}")]
         public ActionResult Patch(int id, JsonPatchDocument<Post> patchDocument) 
         {   
-            Post post = _context.Posts.AsNoTracking().Where(x => x.Id == id).FirstOrDefault();
+            Post post = _repository.Find(id);
             patchDocument.ApplyTo(post, ModelState);
-            _context.Entry(post).State = EntityState.Modified;
-            _context.SaveChanges();
+            _repository.Update(id, post);
+      
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public ActionResult Delete(int id) 
         {
-            Post post = _context.Posts.AsNoTracking().Where(x => x.Id == id).FirstOrDefault();
-            _context.Posts.Remove(post);
-            _context.SaveChanges();
+            Post post = _repository.Find(id);
+            _repository.Delete(id);
+
             return NoContent();
         }
     }
